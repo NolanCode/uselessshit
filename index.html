@@ -1,1 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UselessShit</title>
+<style>
+  /* Make the body fill the entire screen */
+  body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Gradient animation */
+  body {
+    background: linear-gradient(270deg, #8a2be2, #00008b); /* light purple to dark blue */
+    background-size: 400% 400%; /* allow movement */
+    animation: gradientAnimation 10s ease infinite alternate; /* smooth infinite animation */
+  }
+
+  /* Keyframes for smooth gradient shift */
+  @keyframes gradientAnimation {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Optional: center some text */
+  h1 {
+    color: white;
+    text-align: center;
+    margin-top: 20%;
+    font-family: sans-serif;
+  }
+</style>
+</head>
+<body>
+  <h1>Welcome to UselessShit</h1>
+</body>
+</html>
 
