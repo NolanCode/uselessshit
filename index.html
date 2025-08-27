@@ -5,44 +5,263 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UselessShit</title>
 <style>
-  /* Make the body fill the entire screen */
-  body, html {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-  }
+/* --- Body Gradient Background --- */
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: sans-serif;
+  background: linear-gradient(270deg, #8a2be2, #00008b);
+  background-size: 400% 400%;
+  animation: gradientAnimation 15s ease infinite alternate;
+  overflow-x: hidden;
+}
 
-  /* Gradient animation */
-  body {
-    background: linear-gradient(270deg, #8a2be2, #00008b); /* light purple to dark blue */
-    background-size: 400% 400%; /* allow movement */
-    animation: gradientAnimation 10s ease infinite alternate; /* smooth infinite animation */
-  }
+@keyframes gradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-  /* Keyframes for smooth gradient shift */
-  @keyframes gradientAnimation {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
+/* --- Layout --- */
+.container {
+  position: fixed;
+  top: 50px;
+  left: 30px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
 
-  /* Optional: center some text */
-  h1 {
-    color: white;
-    text-align: center;
-    margin-top: 20%;
-    font-family: sans-serif;
-  }
+/* --- Podium / Nickname Box --- */
+.podium-container {
+  position: relative;
+  height: 150px;
+  background: #222;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 10px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.podium {
+  width: 80%;
+  height: 50px;
+  background: #555;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+}
+
+.nickname {
+  position: absolute;
+  top: -30px;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+/* --- Generate Button --- */
+#generate-btn {
+  padding: 15px;
+  font-size: 1.1em;
+  font-weight: bold;
+  background: linear-gradient(45deg, #ff69b4, #ff8c00);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+#generate-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+/* --- Temporary Giggity Text --- */
+#giggity-text {
+  position: absolute;
+  font-size: 1.2em;
+  color: yellow;
+  font-weight: bold;
+  display: none;
+  margin-bottom: 10px;
+}
+
+/* --- Input Box --- */
+#word-input {
+  padding: 10px;
+  font-size: 1em;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  width: 100%;
+}
+
+#add-word-btn, #show-list-btn {
+  margin-top: 5px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  background: #00bfff;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+#add-word-btn:hover, #show-list-btn:hover {
+  background: #009acd;
+}
+
+/* --- Sliding Word List --- */
+#word-list-panel {
+  position: fixed;
+  top: 50px;
+  left: -250px; /* hidden initially */
+  width: 250px;
+  max-height: 80%;
+  overflow-y: auto;
+  background: white;
+  color: black;
+  padding: 10px;
+  border-radius: 0 12px 12px 0;
+  box-shadow: 4px 0 10px rgba(0,0,0,0.3);
+  transition: left 0.3s ease;
+  z-index: 1000;
+}
+
+#word-list-panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#word-list-panel li {
+  padding: 5px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+/* --- Random Words Output --- */
+#random-output {
+  margin-top: 10px;
+  color: white;
+  font-size: 1.1em;
+  min-height: 30px;
+}
+
+/* --- Prevent scrolling beyond panel --- */
+body.showing-list {
+  overflow: hidden;
+}
 </style>
 </head>
 <body>
-  <h1>Welcome to UselessShit</h1>
+
+<div class="container">
+  <!-- Podium / Nickname -->
+  <div class="podium-container">
+    <div class="nickname" id="nickname">???</div>
+    <div class="podium"></div>
+  </div>
+
+  <!-- Giggity Text -->
+  <div id="giggity-text">giggity</div>
+
+  <!-- Generate Button -->
+  <button id="generate-btn">Generate</button>
+  <div id="random-output"></div>
+
+  <!-- Input for Word -->
+  <input type="text" id="word-input" placeholder="Enter word here...">
+  <button id="add-word-btn">Add Word</button>
+  <button id="show-list-btn">Show List</button>
+</div>
+
+<!-- Sliding List -->
+<div id="word-list-panel">
+  <ul id="word-list-ul"></ul>
+</div>
+
+<script>
+let words = [];
+let clickCount = 0;
+
+const nicknameEl = document.getElementById('nickname');
+const generateBtn = document.getElementById('generate-btn');
+const giggityText = document.getElementById('giggity-text');
+const randomOutput = document.getElementById('random-output');
+const wordInput = document.getElementById('word-input');
+const addWordBtn = document.getElementById('add-word-btn');
+const showListBtn = document.getElementById('show-list-btn');
+const wordListPanel = document.getElementById('word-list-panel');
+const wordListUL = document.getElementById('word-list-ul');
+
+addWordBtn.addEventListener('click', () => {
+  const val = wordInput.value.trim();
+  if(val) {
+    words.push(val);
+    wordInput.value = '';
+  }
+});
+
+showListBtn.addEventListener('click', () => {
+  wordListPanel.style.left = '0';
+  document.body.classList.add('showing-list');
+  renderWordList();
+});
+
+// Hide list when clicking outside
+document.addEventListener('click', (e) => {
+  if(!wordListPanel.contains(e.target) && !showListBtn.contains(e.target)) {
+    wordListPanel.style.left = '-250px';
+    document.body.classList.remove('showing-list');
+  }
+});
+
+// Update word list visually
+function renderWordList() {
+  wordListUL.innerHTML = '';
+  words.forEach(word => {
+    const li = document.createElement('li');
+    li.textContent = word;
+    wordListUL.appendChild(li);
+  });
+}
+
+// Generate button behavior
+generateBtn.addEventListener('click', () => {
+  clickCount++;
+  
+  // Show giggity every 6th click
+  if(clickCount % 6 === 0) {
+    giggityText.style.display = 'block';
+    setTimeout(() => {
+      giggityText.style.display = 'none';
+    }, 3000);
+  }
+
+  // Generate random nickname
+  if(words.length > 0) {
+    const n = Math.floor(Math.random() * 4) + 2; // 2-5 words
+    let selectedWords = [];
+    for(let i=0; i<n; i++) {
+      const randWord = words[Math.floor(Math.random() * words.length)];
+      selectedWords.push(randWord);
+    }
+    const nickname = selectedWords.join(' ');
+    nicknameEl.textContent = nickname;
+    randomOutput.textContent = nickname;
+  } else {
+    nicknameEl.textContent = '???';
+    randomOutput.textContent = '';
+  }
+});
+</script>
+
 </body>
 </html>
-
