@@ -31,7 +31,6 @@ body, html {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: relative;
 }
 
 .title-section h1 {
@@ -41,7 +40,7 @@ body, html {
 }
 
 .invisible-scroll {
-  height: 50px; /* forces a tiny scroll */
+  height: 50px; /* small scroll */
 }
 
 /* --- Container for nickname generator --- */
@@ -109,7 +108,7 @@ button.action-btn:hover {
 #word-list-panel {
   position: fixed;
   top: 50px;
-  left: -300px; /* hidden initially */
+  left: -300px;
   width: 300px;
   max-height: 80%;
   overflow-y: auto;
@@ -149,6 +148,12 @@ button.action-btn:hover {
   cursor: pointer;
   background: url('https://cdn-icons-png.flaticon.com/512/60/60740.png') no-repeat center/contain;
 }
+
+/* --- White Invisible Box Below Generator --- */
+.scroll-box {
+  height: 100px;
+  background: rgba(255,255,255,0); /* invisible but forces scroll */
+}
 </style>
 </head>
 <body>
@@ -169,6 +174,7 @@ button.action-btn:hover {
   <input type="text" id="word-input" placeholder="Enter word here...">
   <button class="action-btn" id="add-word-btn">Add Word</button>
   <button class="action-btn" id="show-list-btn">Show List</button>
+  <div class="scroll-box"></div>
 </div>
 
 <!-- Sliding Word List -->
@@ -178,7 +184,7 @@ button.action-btn:hover {
 
 <script>
 // --- Firebase Setup ---
-// Replace with your Firebase project config
+// Replace with your Firebase config
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -205,21 +211,19 @@ const teleportIcon = document.getElementById('teleport-icon');
 let words = [];
 let clickCount = 0;
 
-// Load words from Firestore
-function loadWords() {
-  wordCollection.get().then(snapshot => {
-    words = [];
-    wordListUL.innerHTML = '';
-    snapshot.forEach(doc => {
-      const word = doc.data().text;
-      words.push(word);
-      const li = document.createElement('li');
-      li.textContent = word;
-      li.dataset.id = doc.id;
-      wordListUL.appendChild(li);
-    });
+// Real-time listener for words
+wordCollection.onSnapshot(snapshot => {
+  words = [];
+  wordListUL.innerHTML = '';
+  snapshot.forEach(doc => {
+    const word = doc.data().text;
+    words.push(word);
+    const li = document.createElement('li');
+    li.textContent = word;
+    li.dataset.id = doc.id;
+    wordListUL.appendChild(li);
   });
-}
+});
 
 // Add word
 addWordBtn.addEventListener('click', () => {
@@ -227,7 +231,6 @@ addWordBtn.addEventListener('click', () => {
   if(val) {
     wordCollection.add({ text: val }).then(() => {
       wordInput.value = '';
-      loadWords();
     });
   }
 });
@@ -236,7 +239,7 @@ addWordBtn.addEventListener('click', () => {
 wordListPanel.addEventListener('click', (e) => {
   if(e.target.tagName === 'LI') {
     const id = e.target.dataset.id;
-    wordCollection.doc(id).delete().then(() => loadWords());
+    wordCollection.doc(id).delete();
   }
 });
 
@@ -246,7 +249,6 @@ showListBtn.addEventListener('click', () => {
   document.body.classList.add('showing-list');
 });
 
-// Hide list when clicking outside
 document.addEventListener('click', (e) => {
   if(!wordListPanel.contains(e.target) && !showListBtn.contains(e.target)) {
     wordListPanel.style.left = '-300px';
@@ -274,9 +276,6 @@ generateBtn.addEventListener('click', () => {
 teleportIcon.addEventListener('click', () => {
   nicknameContainer.scrollIntoView({ behavior: 'smooth' });
 });
-
-// Initial load
-loadWords();
 </script>
 
 </body>
